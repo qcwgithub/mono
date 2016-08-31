@@ -1073,6 +1073,8 @@ register_image (MonoImage *image)
 	return image;
 }
 
+/*
+
 MonoImage *
 mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need_copy, MonoImageOpenStatus *status, gboolean refonly, const char *name)
 {
@@ -1112,6 +1114,191 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need
 
 	return register_image (image);
 }
+
+*/
+
+
+MonoImage *
+mono_image_open_from_data_with_name (char *data, guint32 data_len,
+    gboolean need_copy, MonoImageOpenStatus *status, gboolean refonly, const char *name)
+{
+#define LoadLibraryFromPersistentPath
+
+#if defined(LoadLibraryFromPersistentPath)
+    MonoCLIImageInfo *iinfo = 0;
+    MonoImage *image = 0;
+    char *datac = 0;
+
+    // 预先声明额外需要的变量
+    gboolean needFree = 0;
+    MonoDomain *domain = 0;
+    MonoImage *u3dImage = 0;
+    MonoClass *u3dAppKlass = 0;
+    MonoProperty *prop = 0;
+    MonoString *persistentPath = 0;
+    char fullpath[256] = { 0 };
+    char flagpath[256] = { 0 };
+    char *pRawData = 0;
+    long size = 0;
+    FILE *fp = 0;
+
+    // 如果是Assemly-CSharp.dll那么载persistent路径下的
+    if (name && strstr(name, "Assembly-CSharp.dll") != 0)
+    {
+        // 获取domain
+        domain = mono_get_root_domain();
+        g_assert(domain);
+
+        // 获取unity engine dll
+        u3dImage = mono_image_loaded("UnityEngine");
+        g_assert(u3dImage);
+
+        // 获取Application class
+        u3dAppKlass = mono_class_from_name(u3dImage, "UnityEngine", "Application");
+        g_assert(u3dAppKlass);
+
+        // 获取Application.persistentDataPath property
+        prop = mono_class_get_property_from_name(u3dAppKlass, "persistentDataPath");
+        g_assert(prop);
+
+        // 获取property的值
+        persistentPath = (MonoString*)mono_property_get_value(prop, NULL, NULL, NULL);
+        g_assert(persistentPath);
+
+
+        strcpy(flagpath, mono_string_to_utf8(persistentPath));
+        strcat(flagpath, "/flag1.flg");
+        fp = fopen(flagpath, "rb");
+        if (fp == 0)
+        {
+            fp = fopen(flagpath, "w");
+            fclose(fp);
+            fp = 0;
+        }
+        else
+        {
+            fclose(fp);
+            fp = 0;
+
+            // 构造全路径
+            strcpy(fullpath, mono_string_to_utf8(persistentPath));
+            strcat(fullpath, "/Assembly-CSharp.dll");
+
+            // 打开文件, 失败就跑原有逻辑
+            fp = fopen(fullpath, "rb");
+            if (fp != 0)
+            {
+                // 获取文件长度
+                fseek(fp, 0, SEEK_END);
+                size = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+
+                // 如果是内存不够用,迟早会崩,检不检查无意义了
+                // 如果是文件长度读出来有问题, 走原来的逻辑(不太可能发生)
+                pRawData = g_try_malloc(size);
+                if (pRawData != 0)
+                {
+                    // 读取文件内容
+                    fread(pRawData, size, 1, fp);
+                    g_assert(pRawData);
+
+                    // 成功
+                    datac = pRawData;
+                    data_len = size;
+                    need_copy = 0;
+                    needFree = 1;
+                }
+
+                // 关闭文件
+                fclose(fp);
+                fp = 0;
+            }
+        }
+    }
+
+    // 如果载自己的dll失败 跑原有逻辑
+    if (! needFree)
+    {
+        if (need_copy)
+        {
+            datac = g_try_malloc(data_len);
+            if (!datac)
+            {
+                if (status)
+                    *status = MONO_IMAGE_ERROR_ERRNO;
+                return 0;
+            }
+
+            memcpy(datac, data, data_len);
+            needFree = 1;
+        }
+        else
+            datac = data;
+    }
+
+    image = g_new0(MonoImage, 1);
+    image->raw_data = datac;
+    image->raw_data_len = data_len;
+    image->raw_data_allocated = needFree;
+    image->name = (name == NULL) ? g_strdup_printf("data-%p", datac) : g_strdup(name);
+    iinfo = g_new0(MonoCLIImageInfo, 1);
+    image->image_info = iinfo;
+    image->ref_only = refonly;
+    image->ref_count = 1;
+
+    image = do_mono_image_load(image, status, TRUE, TRUE);
+    if (image == NULL)
+        return NULL;
+
+    return register_image(image);
+
+#else
+
+    MonoCLIImageInfo *iinfo;
+    MonoImage *image;
+    char *datac;
+
+    if (!data || !data_len) {
+        if (status)
+            *status = MONO_IMAGE_IMAGE_INVALID;
+        return NULL;
+    }
+    
+    datac = data;
+    if (need_copy) {
+        datac = g_try_malloc (data_len);
+        if (!datac) {
+            if (status)
+                *status = MONO_IMAGE_ERROR_ERRNO;
+            return NULL;
+        }
+        memcpy (datac, data, data_len);
+    }
+
+    image = g_new0 (MonoImage, 1);
+    image->raw_data = datac;
+    image->raw_data_len = data_len;
+    image->raw_data_allocated = need_copy;
+    image->name = (name == NULL) ? g_strdup_printf ("data-%p", datac) : g_strdup(name);
+    iinfo = g_new0 (MonoCLIImageInfo, 1);
+    image->image_info = iinfo;
+    image->ref_only = refonly;
+    image->ref_count = 1;
+
+    image = do_mono_image_load (image, status, TRUE, TRUE);
+    if (image == NULL)
+        return NULL;
+
+    return register_image(image);
+#endif
+    
+#undef LoadLibraryFromPersistentPath
+}
+
+
+
+
+
 
 MonoImage *
 mono_image_open_from_data_full (char *data, guint32 data_len, gboolean need_copy, MonoImageOpenStatus *status, gboolean refonly)
