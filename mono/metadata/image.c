@@ -1150,15 +1150,18 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
         g_assert(domain);
 
         // 获取unity engine dll
-        u3dImage = mono_image_loaded("UnityEngine");
+        u3dImage = mono_image_loaded("Assembly-CSharp-firstpass");
+        if (u3dImage==0) printf("%s\n", "u3dImage is null");
         g_assert(u3dImage);
 
         // 获取Application class
-        u3dAppKlass = mono_class_from_name(u3dImage, "UnityEngine", "Application");
+        u3dAppKlass = mono_class_from_name(u3dImage, "Nova", "PersistPathMgr");
+        if (u3dAppKlass==0) printf("%s\n", "u3dAppKlass is null");
         g_assert(u3dAppKlass);
 
         // 获取Application.persistentDataPath property
-        prop = mono_class_get_property_from_name(u3dAppKlass, "persistentDataPath");
+        prop = mono_class_get_property_from_name(u3dAppKlass, "persistentDataPath_fromC");
+        if (prop==0) printf("%s\n", "prop is null");
         g_assert(prop);
 
         // 获取property的值
