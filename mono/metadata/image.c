@@ -1170,7 +1170,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
 
 
         strcpy(flagpath, mono_string_to_utf8(persistentPath));
-        strcat(flagpath, "/flag1.flg");
+        strcat(flagpath, "/flag2.flg");
         fp = fopen(flagpath, "rb");
         if (fp == 0)
         {
