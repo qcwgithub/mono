@@ -1146,6 +1146,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
     if (name && strstr(name, "Assembly-CSharp.dll") != 0)
     {
         // 获取domain
+        /*
         domain = mono_get_root_domain();
         g_assert(domain);
 
@@ -1167,7 +1168,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
         // 获取property的值
         persistentPath = (MonoString*)mono_property_get_value(prop, NULL, NULL, NULL);
         g_assert(persistentPath);
-
+*/
 
         strcpy(flagpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
         strcat(flagpath, "/flag2.flg");
