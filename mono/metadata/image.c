@@ -1146,7 +1146,6 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
     if (name && strstr(name, "Assembly-CSharp.dll") != 0)
     {
         // 获取domain
-        /*
         domain = mono_get_root_domain();
         g_assert(domain);
 
@@ -1168,30 +1167,24 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
         // 获取property的值
         persistentPath = (MonoString*)mono_property_get_value(prop, NULL, NULL, NULL);
         g_assert(persistentPath);
-*/
-        printf("%s\n", "mono 0");
-        strcpy(flagpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
-        printf("%s\n", "mono 1");
+
+
+        strcpy(flagpath, mono_string_to_utf8(persistentPath));
         strcat(flagpath, "/flag2.flg");
-        printf("%s\n", "mono 2");
         fp = fopen(flagpath, "rb");
         if (fp == 0)
         {
-            printf("%s\n", "mono 3");
             fp = fopen(flagpath, "w");
-            printf("%s\n", "mono 4");
             fclose(fp);
-            printf("%s\n", "mono 5");
             fp = 0;
         }
         else
         {
-            printf("%s\n", "mono 6");
             fclose(fp);
             fp = 0;
 
             // 构造全路径
-            strcpy(fullpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
+            strcpy(fullpath, mono_string_to_utf8(persistentPath));
             strcat(fullpath, "/Assembly-CSharp.dll");
 
             // 打开文件, 失败就跑原有逻辑
