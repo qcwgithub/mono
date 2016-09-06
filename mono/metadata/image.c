@@ -1169,18 +1169,24 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
         persistentPath = (MonoString*)mono_property_get_value(prop, NULL, NULL, NULL);
         g_assert(persistentPath);
 */
-
+        printf("%s\n", "mono 0");
         strcpy(flagpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
+        printf("%s\n", "mono 1");
         strcat(flagpath, "/flag2.flg");
+        printf("%s\n", "mono 2");
         fp = fopen(flagpath, "rb");
         if (fp == 0)
         {
+            printf("%s\n", "mono 3");
             fp = fopen(flagpath, "w");
+            printf("%s\n", "mono 4");
             fclose(fp);
+            printf("%s\n", "mono 5");
             fp = 0;
         }
         else
         {
+            printf("%s\n", "mono 6");
             fclose(fp);
             fp = 0;
 
