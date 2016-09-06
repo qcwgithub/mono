@@ -1169,7 +1169,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
         g_assert(persistentPath);
 
 
-        strcpy(flagpath, mono_string_to_utf8(persistentPath));
+        strcpy(flagpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
         strcat(flagpath, "/flag2.flg");
         fp = fopen(flagpath, "rb");
         if (fp == 0)
@@ -1184,7 +1184,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
             fp = 0;
 
             // 构造全路径
-            strcpy(fullpath, mono_string_to_utf8(persistentPath));
+            strcpy(fullpath, "/storage/emulated/0/Android/data/com.yxys.msjnh.wdj/files");//mono_string_to_utf8(persistentPath));
             strcat(fullpath, "/Assembly-CSharp.dll");
 
             // 打开文件, 失败就跑原有逻辑
