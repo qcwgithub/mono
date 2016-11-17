@@ -1171,7 +1171,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
 
 
         strcpy(flagpath, mono_string_to_utf8(persistentPath));
-        strcat(flagpath, "/flag4.flg");
+        strcat(flagpath, "/flag5.flg");
         
         strcpy(readwherepath, mono_string_to_utf8(persistentPath));
         strcat(readwherepath, "/readwhere.txt");
