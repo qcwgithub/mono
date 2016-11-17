@@ -1138,6 +1138,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
     MonoString *persistentPath = 0;
     char fullpath[256] = { 0 };
     char flagpath[256] = { 0 };
+    char readwherepath[256] = { 0 };
     char *pRawData = 0;
     long size = 0;
     FILE *fp = 0;
@@ -1171,6 +1172,10 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
 
         strcpy(flagpath, mono_string_to_utf8(persistentPath));
         strcat(flagpath, "/flag4.flg");
+        
+        strcpy(readwherepath, mono_string_to_utf8(persistentPath));
+        strcat(readwherepath, "/readwhere.txt");
+        
         fp = fopen(flagpath, "rb");
         if (fp == 0)
         {
@@ -1216,6 +1221,15 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len,
                 fclose(fp);
                 fp = 0;
             }
+        }
+    }
+    
+    {
+        fp = fopen(readwherepath, "w");
+        if (fp) {
+            fwrite(needFree ? "1" : "0", 1, 1, fp);
+            fclose(fp);
+            fp = 0;
         }
     }
 
